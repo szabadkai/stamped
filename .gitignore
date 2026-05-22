@@ -1,0 +1,10 @@
+node_modules/
+dist/
+*.local
+.DS_Store
+*.tsbuildinfo
+.history
+.vscode/
+.idea/
+.claude
+.claude_cache/
