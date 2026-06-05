@@ -21,12 +21,19 @@ const bevelInput = document.getElementById('bevel') as HTMLInputElement;
 const scaleInput = document.getElementById('scale') as HTMLInputElement;
 const rotationInput = document.getElementById('rotation') as HTMLInputElement;
 const flipInput = document.getElementById('flip-winding') as HTMLInputElement;
+const circleInput = document.getElementById('circle-enabled') as HTMLInputElement;
+const circleThicknessInput = document.getElementById('circle-thickness') as HTMLInputElement;
+const legendTopInput = document.getElementById('legend-top') as HTMLInputElement;
+const legendBottomInput = document.getElementById('legend-bottom') as HTMLInputElement;
+const legendSizeInput = document.getElementById('legend-size') as HTMLInputElement;
 const resetPosBtn = document.getElementById('reset-pos-btn') as HTMLButtonElement;
 const viewportHint = document.getElementById('viewport-hint')!;
 const depthValue = document.getElementById('depth-value')!;
 const bevelValue = document.getElementById('bevel-value')!;
 const scaleValue = document.getElementById('scale-value')!;
 const rotationValue = document.getElementById('rotation-value')!;
+const circleThicknessValue = document.getElementById('circle-thickness-value')!;
+const legendSizeValue = document.getElementById('legend-size-value')!;
 const themeToggle = document.getElementById('theme-toggle') as HTMLButtonElement;
 
 function setStatus(text: string) {
@@ -45,6 +52,11 @@ function readExtrudeParams(): ExtrudeParams {
     bevelSize: parseFloat(bevelInput.value),
     flipWinding: flipInput.checked,
     targetSize: getTargetSize(),
+    circle: circleInput.checked,
+    circleThickness: parseFloat(circleThicknessInput.value),
+    legendTop: legendTopInput.value,
+    legendBottom: legendBottomInput.value,
+    legendSize: parseFloat(legendSizeInput.value),
   };
 }
 
@@ -53,10 +65,30 @@ function updateValueLabels() {
   bevelValue.textContent = `${bevelInput.value} mm`;
   scaleValue.textContent = `${scaleInput.value}%`;
   rotationValue.textContent = `${rotationInput.value}°`;
+  circleThicknessValue.textContent = `${circleThicknessInput.value} mm`;
+  legendSizeValue.textContent = `${legendSizeInput.value} mm`;
+}
+
+/** True when there's anything to build: an SVG, a circle, or legend text. */
+function hasContent(): boolean {
+  return !!(
+    currentSVG?.trim() ||
+    circleInput.checked ||
+    legendTopInput.value.trim() ||
+    legendBottomInput.value.trim()
+  );
 }
 
 function rebuildSVGGeometry() {
-  if (!currentSVG || !baseGeometry) return;
+  if (!baseGeometry) return;
+
+  if (!hasContent()) {
+    viewer.removeSVG();
+    currentSVGGeometry = null;
+    downloadBtn.disabled = true;
+    setStatus('Upload an SVG or add a circle / legend to begin');
+    return;
+  }
 
   setStatus('Building stamp pattern...');
 
@@ -66,7 +98,7 @@ function rebuildSVGGeometry() {
 
   try {
     const params = readExtrudeParams();
-    const extruded = extrudeSVG(currentSVG, params);
+    const extruded = extrudeSVG(currentSVG ?? '', params);
 
     if (!extruded) {
       setStatus('No shapes found in SVG');
@@ -142,6 +174,11 @@ rotationInput.addEventListener('input', () => {
   viewer.setSVGRotation(parseFloat(rotationInput.value));
 });
 flipInput.addEventListener('change', rebuildSVGGeometry);
+circleInput.addEventListener('change', rebuildSVGGeometry);
+circleThicknessInput.addEventListener('input', () => { updateValueLabels(); debouncedRebuild(); });
+legendTopInput.addEventListener('input', debouncedRebuild);
+legendBottomInput.addEventListener('input', debouncedRebuild);
+legendSizeInput.addEventListener('input', () => { updateValueLabels(); debouncedRebuild(); });
 
 resetPosBtn.addEventListener('click', () => {
   viewer.resetSVGPosition();
