@@ -1,43 +1,71 @@
 import * as THREE from 'three';
 import { SVGLoader } from 'three/addons/loaders/SVGLoader.js';
 import { mergeGeometries as mergeBufferGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { buildDecorationShapes } from './decorations.ts';
 
 export interface ExtrudeParams {
   depth: number;
   bevelSize: number;
   flipWinding: boolean;
   targetSize: number;
+  /** Draw a solid ring border around the design. */
+  circle: boolean;
+  /** Ring wall thickness in mm. */
+  circleThickness: number;
+  /** Legend text running along the top arc. */
+  legendTop: string;
+  /** Legend text running along the bottom arc. */
+  legendBottom: string;
+  /** Cap height of the legend text in mm. */
+  legendSize: number;
 }
 
 export function extrudeSVG(
   svgString: string,
   params: ExtrudeParams,
 ): THREE.BufferGeometry | null {
-  const loader = new SVGLoader();
-  const svgData = loader.parse(svgString);
-
-  const xml = svgData.xml as unknown as SVGSVGElement | null;
-  const svgWidth = xml?.viewBox?.baseVal?.width
-    || xml?.width?.baseVal?.value
-    || 100;
-  const svgHeight = xml?.viewBox?.baseVal?.height
-    || xml?.height?.baseVal?.value
-    || 100;
-
-  const maxDim = Math.max(svgWidth, svgHeight);
-  const svgCenterX = svgWidth / 2;
-  const svgCenterY = svgHeight / 2;
-  const scaleFactor = params.targetSize / maxDim;
-
   const allShapes: THREE.Shape[] = [];
 
-  for (const path of svgData.paths) {
-    const shapes = SVGLoader.createShapes(path);
-    for (const shape of shapes) {
-      transformShapePoints(shape, svgCenterX, svgCenterY, scaleFactor);
-      allShapes.push(shape);
+  if (svgString.trim()) {
+    const loader = new SVGLoader();
+    const svgData = loader.parse(svgString);
+
+    const xml = svgData.xml as unknown as SVGSVGElement | null;
+    const svgWidth = xml?.viewBox?.baseVal?.width
+      || xml?.width?.baseVal?.value
+      || 100;
+    const svgHeight = xml?.viewBox?.baseVal?.height
+      || xml?.height?.baseVal?.value
+      || 100;
+
+    const maxDim = Math.max(svgWidth, svgHeight);
+    const svgCenterX = svgWidth / 2;
+    const svgCenterY = svgHeight / 2;
+    const scaleFactor = params.targetSize / maxDim;
+
+    for (const path of svgData.paths) {
+      const shapes = SVGLoader.createShapes(path);
+      for (const shape of shapes) {
+        transformShapePoints(shape, svgCenterX, svgCenterY, scaleFactor);
+        allShapes.push(shape);
+      }
     }
   }
+
+  // Wrap the design with an optional ring border and curved legend text.
+  const contentRadius = boundingRadius(allShapes) || params.targetSize * 0.3;
+  const decorations = buildDecorationShapes(
+    {
+      circle: params.circle,
+      circleThickness: params.circleThickness,
+      legendTop: params.legendTop,
+      legendBottom: params.legendBottom,
+      legendSize: params.legendSize,
+      targetSize: params.targetSize,
+    },
+    contentRadius,
+  );
+  allShapes.push(...decorations);
 
   if (allShapes.length === 0) return null;
 
@@ -87,6 +115,22 @@ export function extrudeSVG(
   mainGeo.rotateX(-Math.PI / 2);
   mainGeo.computeVertexNormals();
   return mainGeo;
+}
+
+/** Largest distance of any shape (or hole) point from the origin, in mm. */
+function boundingRadius(shapes: THREE.Shape[]): number {
+  let max = 0;
+  for (const shape of shapes) {
+    for (const p of shape.getPoints(24)) {
+      max = Math.max(max, Math.hypot(p.x, p.y));
+    }
+    for (const hole of shape.holes) {
+      for (const p of hole.getPoints(24)) {
+        max = Math.max(max, Math.hypot(p.x, p.y));
+      }
+    }
+  }
+  return max;
 }
 
 function transformShapePoints(
