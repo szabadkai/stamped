@@ -24,6 +24,8 @@ export interface ExtrudeParams {
   gap: number;
   /** Rotation (degrees) of the legend band around the circle. */
   legendAngle: number;
+  /** Mirror the relief so the printed imprint reads correctly. */
+  mirror: boolean;
 }
 
 export function extrudeSVG(
@@ -116,14 +118,42 @@ export function extrudeSVG(
     const merged = mergeBufferGeometries([mainNI, flareNI]);
     if (merged) {
       merged.rotateX(-Math.PI / 2);
-      merged.computeVertexNormals();
-      return merged;
+      return finalize(merged, params.mirror);
     }
   }
 
   mainGeo.rotateX(-Math.PI / 2);
-  mainGeo.computeVertexNormals();
-  return mainGeo;
+  return finalize(mainGeo, params.mirror);
+}
+
+/**
+ * Optionally mirror the relief (so a pressed imprint reads correctly) and
+ * recompute normals. Mirroring negates X and reverses each triangle's winding
+ * so the solid stays correctly oriented for STL export.
+ */
+function finalize(geo: THREE.BufferGeometry, mirror: boolean): THREE.BufferGeometry {
+  const g = geo.index ? geo.toNonIndexed() : geo;
+
+  if (mirror) {
+    const arr = g.attributes.position.array as Float32Array;
+    for (let i = 0; i < arr.length; i += 3) {
+      arr[i] = -arr[i]; // flip X
+    }
+    // Reflection inverts triangle orientation; swap two verts per triangle to restore it.
+    for (let i = 0; i < arr.length; i += 9) {
+      for (let k = 0; k < 3; k++) {
+        const a = i + 3 + k;
+        const b = i + 6 + k;
+        const tmp = arr[a];
+        arr[a] = arr[b];
+        arr[b] = tmp;
+      }
+    }
+    g.attributes.position.needsUpdate = true;
+  }
+
+  g.computeVertexNormals();
+  return g;
 }
 
 /** Largest distance of any shape (or hole) point from the origin, in mm. */

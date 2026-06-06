@@ -23,6 +23,7 @@ const scaleInput = document.getElementById('scale') as HTMLInputElement;
 const rotationInput = document.getElementById('rotation') as HTMLInputElement;
 const artRotationInput = document.getElementById('art-rotation') as HTMLInputElement;
 const flipInput = document.getElementById('flip-winding') as HTMLInputElement;
+const mirrorInput = document.getElementById('mirror') as HTMLInputElement;
 const circleInput = document.getElementById('circle-enabled') as HTMLInputElement;
 const circleThicknessInput = document.getElementById('circle-thickness') as HTMLInputElement;
 const gapInput = document.getElementById('gap') as HTMLInputElement;
@@ -76,6 +77,7 @@ function readExtrudeParams(): ExtrudeParams {
     legendSize: parseFloat(legendSizeInput.value),
     gap: parseFloat(gapInput.value),
     legendAngle: parseFloat(legendAngleInput.value),
+    mirror: mirrorInput.checked,
   };
 }
 
@@ -197,6 +199,7 @@ rotationInput.addEventListener('input', () => {
 });
 artRotationInput.addEventListener('input', () => { updateValueLabels(); debouncedRebuild(); });
 flipInput.addEventListener('change', rebuildSVGGeometry);
+mirrorInput.addEventListener('change', rebuildSVGGeometry);
 circleInput.addEventListener('change', rebuildSVGGeometry);
 circleThicknessInput.addEventListener('input', () => { updateValueLabels(); debouncedRebuild(); });
 gapInput.addEventListener('input', () => { updateValueLabels(); debouncedRebuild(); });
