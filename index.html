@@ -78,6 +78,14 @@
               <input type="range" id="rotation" min="0" max="360" step="1" value="0" />
             </div>
 
+            <div class="control-group">
+              <div class="control-header">
+                <label for="art-rotation">Art rotation</label>
+                <span id="art-rotation-value" class="value-label">0°</span>
+              </div>
+              <input type="range" id="art-rotation" min="-180" max="180" step="1" value="0" />
+            </div>
+
             <button id="reset-pos-btn" class="btn-secondary">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
               Reset Position
@@ -101,6 +109,14 @@
               </div>
               <input type="range" id="circle-thickness" min="0.4" max="4" step="0.1" value="1.5" />
             </div>
+
+            <div class="control-group">
+              <div class="control-header">
+                <label for="gap">Gap to design</label>
+                <span id="gap-value" class="value-label">2 mm</span>
+              </div>
+              <input type="range" id="gap" min="0" max="12" step="0.1" value="2" />
+            </div>
           </div>
 
           <div class="control-section">
@@ -117,11 +133,24 @@
             </div>
 
             <div class="control-group">
+              <label for="legend-font" class="field-label">Font</label>
+              <select id="legend-font" class="select-input"></select>
+            </div>
+
+            <div class="control-group">
               <div class="control-header">
                 <label for="legend-size">Text size</label>
                 <span id="legend-size-value" class="value-label">4 mm</span>
               </div>
               <input type="range" id="legend-size" min="1.5" max="8" step="0.1" value="4" />
+            </div>
+
+            <div class="control-group">
+              <div class="control-header">
+                <label for="legend-angle">Legend angle</label>
+                <span id="legend-angle-value" class="value-label">0°</span>
+              </div>
+              <input type="range" id="legend-angle" min="-180" max="180" step="1" value="0" />
             </div>
           </div>
 

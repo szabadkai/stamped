@@ -1,12 +1,62 @@
 import { Font, type FontData } from 'three/addons/loaders/FontLoader.js';
-import fontData from './helvetiker_regular.typeface.json';
+import helvetiker from './fonts/helvetiker.typeface.json';
 
-let cached: Font | null = null;
+export interface FontOption {
+  id: string;
+  label: string;
+}
 
-/** Lazily construct the legend font from the bundled typeface JSON. */
-export function getFont(): Font {
-  if (!cached) {
-    cached = new Font(fontData as unknown as FontData);
+/** Fonts offered in the legend picker (first entry is the default). */
+export const FONT_OPTIONS: FontOption[] = [
+  { id: 'helvetiker', label: 'Helvetiker — Sans' },
+  { id: 'optimer', label: 'Optimer — Serif' },
+  { id: 'pirata', label: 'Pirata One — Gothic' },
+  { id: 'bungee', label: 'Bungee — Display' },
+  { id: 'rye', label: 'Rye — Western' },
+  { id: 'bangers', label: 'Bangers — Comic' },
+  { id: 'pressstart', label: 'Press Start 2P — Pixel' },
+];
+
+// Lazy loaders so each typeface is fetched as its own chunk only when chosen.
+const loaders: Record<string, () => Promise<{ default: unknown }>> = {
+  optimer: () => import('./fonts/optimer.typeface.json'),
+  pirata: () => import('./fonts/pirata.typeface.json'),
+  bungee: () => import('./fonts/bungee.typeface.json'),
+  rye: () => import('./fonts/rye.typeface.json'),
+  bangers: () => import('./fonts/bangers.typeface.json'),
+  pressstart: () => import('./fonts/pressstart.typeface.json'),
+};
+
+const cache = new Map<string, Font>();
+cache.set('helvetiker', new Font(helvetiker as unknown as FontData));
+
+let active: Font = cache.get('helvetiker')!;
+
+/** The font currently used when building legend text (always loaded). */
+export function getActiveFont(): Font {
+  return active;
+}
+
+/**
+ * Load (if needed) and select the font with the given id. Resolves once the
+ * font is ready, so callers can rebuild geometry afterwards. Unknown ids fall
+ * back to the bundled default.
+ */
+export async function setActiveFont(id: string): Promise<void> {
+  const cached = cache.get(id);
+  if (cached) {
+    active = cached;
+    return;
   }
-  return cached;
+
+  const loader = loaders[id];
+  if (!loader) {
+    active = cache.get('helvetiker')!;
+    return;
+  }
+
+  const mod = await loader();
+  const font = new Font(mod.default as FontData);
+  cache.set(id, font);
+  active = font;
 }
