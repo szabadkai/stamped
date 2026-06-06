@@ -197,6 +197,26 @@
       </main>
     </div>
 
+    <div class="modal-overlay" id="order-modal" hidden>
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="order-modal-title">
+        <h2 id="order-modal-title">Order a 3D print</h2>
+        <p class="modal-lead">Your <strong>stamp.stl</strong> has been saved to your device. Formlabs <strong>Form Now</strong> prints it on demand — here's how to order:</p>
+        <ol class="modal-steps">
+          <li>Open <strong>Form Now</strong> (opens in a new tab).</li>
+          <li>Click <strong>Upload your model</strong> and choose <strong>stamp.stl</strong> from your downloads.</li>
+          <li>Pick material, color &amp; quantity, then check out.</li>
+        </ol>
+        <p class="modal-note">Form Now has no public upload API, so this last hop is manual — your file never leaves your device until you upload it there.</p>
+        <div class="modal-actions">
+          <button id="order-cancel" class="btn-secondary">Not now</button>
+          <a id="order-open" class="btn-primary" href="https://now.formlabs.com/" target="_blank" rel="noopener">
+            Open Form Now
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

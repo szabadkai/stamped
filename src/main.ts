@@ -242,13 +242,34 @@ downloadBtn.addEventListener('click', () => {
 // Order a 3D print through Formlabs Form Now. Form Now has no public upload
 // API, so we export the STL locally and open its uploader for the user to drop
 // the file into (the standard upload → material → quote → checkout flow).
-const FORM_NOW_URL = 'https://now.formlabs.com/';
+// Order a 3D print through Formlabs Form Now. Form Now has no public upload
+// API, so we export the STL locally and hand the user off to its uploader
+// (the standard upload → material → quote → checkout flow) with instructions.
+const orderModal = document.getElementById('order-modal')!;
+const orderOpenLink = document.getElementById('order-open') as HTMLAnchorElement;
+const orderCancelBtn = document.getElementById('order-cancel') as HTMLButtonElement;
+
+function closeOrderModal() {
+  orderModal.hidden = true;
+}
+
 orderBtn.addEventListener('click', () => {
   const combined = buildCombinedGeometry();
   if (!combined) return;
   exportSTL(combined, 'stamp.stl');
-  window.open(FORM_NOW_URL, '_blank', 'noopener');
-  setStatus('STL saved — drop stamp.stl into the Form Now uploader to get a quote');
+  orderModal.hidden = false;
+});
+
+orderOpenLink.addEventListener('click', () => {
+  closeOrderModal();
+  setStatus('Opened Form Now — upload stamp.stl to choose material and check out');
+});
+orderCancelBtn.addEventListener('click', closeOrderModal);
+orderModal.addEventListener('click', (e) => {
+  if (e.target === orderModal) closeOrderModal();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !orderModal.hidden) closeOrderModal();
 });
 
 // ─── Theme ───
