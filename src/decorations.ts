@@ -83,9 +83,11 @@ function ringShape(innerRadius: number, outerRadius: number): THREE.Shape {
 }
 
 /** Trace a circle onto a path as `segments` straight chords. The hole winds
- * opposite to the outer contour. */
+ * opposite to the outer contour. Emits `segments` distinct points and lets the
+ * extruder close the loop — repeating the start point would leave a
+ * zero-length edge at the seam that the chamfer pinches into a nick. */
 function addCirclePath(path: THREE.Path, radius: number, segments: number, clockwise: boolean): void {
-  for (let i = 0; i <= segments; i++) {
+  for (let i = 0; i < segments; i++) {
     const t = (i / segments) * Math.PI * 2;
     const a = clockwise ? -t : t;
     const x = Math.cos(a) * radius;
