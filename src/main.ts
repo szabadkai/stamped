@@ -21,6 +21,7 @@ const depthInput = document.getElementById('depth') as HTMLInputElement;
 const bevelInput = document.getElementById('bevel') as HTMLInputElement;
 const scaleInput = document.getElementById('scale') as HTMLInputElement;
 const rotationInput = document.getElementById('rotation') as HTMLInputElement;
+const artScaleInput = document.getElementById('art-scale') as HTMLInputElement;
 const artRotationInput = document.getElementById('art-rotation') as HTMLInputElement;
 const flipInput = document.getElementById('flip-winding') as HTMLInputElement;
 const mirrorInput = document.getElementById('mirror') as HTMLInputElement;
@@ -38,6 +39,7 @@ const depthValue = document.getElementById('depth-value')!;
 const bevelValue = document.getElementById('bevel-value')!;
 const scaleValue = document.getElementById('scale-value')!;
 const rotationValue = document.getElementById('rotation-value')!;
+const artScaleValue = document.getElementById('art-scale-value')!;
 const artRotationValue = document.getElementById('art-rotation-value')!;
 const circleThicknessValue = document.getElementById('circle-thickness-value')!;
 const gapValue = document.getElementById('gap-value')!;
@@ -69,6 +71,7 @@ function readExtrudeParams(): ExtrudeParams {
     bevelSize: parseFloat(bevelInput.value),
     flipWinding: flipInput.checked,
     targetSize: getTargetSize(),
+    artScale: parseFloat(artScaleInput.value) / 100,
     artRotation: parseFloat(artRotationInput.value),
     circle: circleInput.checked,
     circleThickness: parseFloat(circleThicknessInput.value),
@@ -86,6 +89,7 @@ function updateValueLabels() {
   bevelValue.textContent = `${bevelInput.value} mm`;
   scaleValue.textContent = `${scaleInput.value}%`;
   rotationValue.textContent = `${rotationInput.value}°`;
+  artScaleValue.textContent = `${artScaleInput.value}%`;
   artRotationValue.textContent = `${artRotationInput.value}°`;
   circleThicknessValue.textContent = `${circleThicknessInput.value} mm`;
   gapValue.textContent = `${gapInput.value} mm`;
@@ -197,6 +201,7 @@ rotationInput.addEventListener('input', () => {
   updateValueLabels();
   viewer.setSVGRotation(parseFloat(rotationInput.value));
 });
+artScaleInput.addEventListener('input', () => { updateValueLabels(); debouncedRebuild(); });
 artRotationInput.addEventListener('input', () => { updateValueLabels(); debouncedRebuild(); });
 flipInput.addEventListener('change', rebuildSVGGeometry);
 mirrorInput.addEventListener('change', rebuildSVGGeometry);

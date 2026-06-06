@@ -14,6 +14,9 @@ export const FONT_OPTIONS: FontOption[] = [
   { id: 'bungee', label: 'Bungee — Display' },
   { id: 'rye', label: 'Rye — Western' },
   { id: 'bangers', label: 'Bangers — Comic' },
+  { id: 'bevan', label: 'Bevan — Slab' },
+  { id: 'specialelite', label: 'Special Elite — Typewriter' },
+  { id: 'creepster', label: 'Creepster — Horror' },
   { id: 'pressstart', label: 'Press Start 2P — Pixel' },
 ];
 
@@ -24,6 +27,9 @@ const loaders: Record<string, () => Promise<{ default: unknown }>> = {
   bungee: () => import('./fonts/bungee.typeface.json'),
   rye: () => import('./fonts/rye.typeface.json'),
   bangers: () => import('./fonts/bangers.typeface.json'),
+  bevan: () => import('./fonts/bevan.typeface.json'),
+  specialelite: () => import('./fonts/specialelite.typeface.json'),
+  creepster: () => import('./fonts/creepster.typeface.json'),
   pressstart: () => import('./fonts/pressstart.typeface.json'),
 };
 

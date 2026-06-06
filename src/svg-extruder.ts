@@ -8,6 +8,9 @@ export interface ExtrudeParams {
   bevelSize: number;
   flipWinding: boolean;
   targetSize: number;
+  /** Extra multiplier on the SVG art only (1 = fit to scale), decoupled from
+   * the legend/circle frame so the art can be nested within it. */
+  artScale: number;
   /** Rotation (degrees) of the SVG art relative to the legend/circle frame. */
   artRotation: number;
   /** Draw a solid ring border around the design. */
@@ -33,6 +36,7 @@ export function extrudeSVG(
   params: ExtrudeParams,
 ): THREE.BufferGeometry | null {
   const allShapes: THREE.Shape[] = [];
+  const artScale = Math.max(0.01, params.artScale);
 
   if (svgString.trim()) {
     const loader = new SVGLoader();
@@ -49,7 +53,7 @@ export function extrudeSVG(
     const maxDim = Math.max(svgWidth, svgHeight);
     const svgCenterX = svgWidth / 2;
     const svgCenterY = svgHeight / 2;
-    const scaleFactor = params.targetSize / maxDim;
+    const scaleFactor = (params.targetSize / maxDim) * artScale;
     const artRotation = (params.artRotation * Math.PI) / 180;
 
     for (const path of svgData.paths) {
@@ -61,8 +65,10 @@ export function extrudeSVG(
     }
   }
 
-  // Wrap the design with an optional ring border and curved legend text.
-  const contentRadius = boundingRadius(allShapes) || params.targetSize * 0.3;
+  // The legend/ring are anchored to the art's full-size footprint, so that
+  // tweaking Art scale nests the design within a fixed frame instead of
+  // dragging the decorations in or out with it.
+  const contentRadius = boundingRadius(allShapes) / artScale || params.targetSize * 0.3;
   const decorations = buildDecorationShapes(
     {
       circle: params.circle,

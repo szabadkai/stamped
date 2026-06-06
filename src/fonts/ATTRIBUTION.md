@@ -14,9 +14,13 @@ and only fetched when selected.
 | `bungee.typeface.json`      | Bungee          | Copyright (c) The Bungee Project Authors (David Jonathan Ross) | SIL OFL 1.1 |
 | `rye.typeface.json`         | Rye             | Copyright (c) 2011 Sorkin Type Co                    | SIL OFL 1.1 |
 | `bangers.typeface.json`     | Bangers         | Copyright (c) The Bangers Project Authors (Vernon Adams) | SIL OFL 1.1 |
+| `bevan.typeface.json`       | Bevan           | Copyright (c) The Bevan Project Authors (Vernon Adams) | SIL OFL 1.1 |
+| `creepster.typeface.json`   | Creepster       | Copyright (c) Sideshow / The Creepster Project Authors | SIL OFL 1.1 |
+| `specialelite.typeface.json`| Special Elite   | Copyright (c) Astigmatic (AOETI)                     | Apache License 2.0 |
 | `pressstart.typeface.json`  | Press Start 2P  | Copyright (c) CodeMan38 (Cody Boisclair)             | SIL OFL 1.1 |
 
 The full text of the SIL Open Font License, Version 1.1 is in `OFL.txt`. It
 applies to every font marked "SIL OFL 1.1" above. The "Reserved Font Name"
 clause means the converted/subset data here is not distributed under the
-original font names as installable system fonts.
+original font names as installable system fonts. Special Elite is distributed
+under the Apache License 2.0 (https://www.apache.org/licenses/LICENSE-2.0).
