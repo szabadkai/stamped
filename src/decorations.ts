@@ -66,14 +66,33 @@ export function buildDecorationShapes(
   return out;
 }
 
-/** A flat annulus: outer circle with a concentric circular hole. */
+/** A flat annulus: outer circle with a concentric circular hole.
+ *
+ * Built as fine-grained polygons (not `absarc`) so the circle stays smooth
+ * regardless of the extruder's `curveSegments` — a single arc curve would be
+ * faceted down to ~12 sides. Straight segments are not subdivided further, so
+ * the resolution set here is exactly what gets extruded. */
 function ringShape(innerRadius: number, outerRadius: number): THREE.Shape {
+  const segments = 160;
   const shape = new THREE.Shape();
-  shape.absarc(0, 0, outerRadius, 0, Math.PI * 2, false);
+  addCirclePath(shape, outerRadius, segments, false);
   const hole = new THREE.Path();
-  hole.absarc(0, 0, innerRadius, 0, Math.PI * 2, true);
+  addCirclePath(hole, innerRadius, segments, true);
   shape.holes.push(hole);
   return shape;
+}
+
+/** Trace a circle onto a path as `segments` straight chords. The hole winds
+ * opposite to the outer contour. */
+function addCirclePath(path: THREE.Path, radius: number, segments: number, clockwise: boolean): void {
+  for (let i = 0; i <= segments; i++) {
+    const t = (i / segments) * Math.PI * 2;
+    const a = clockwise ? -t : t;
+    const x = Math.cos(a) * radius;
+    const y = Math.sin(a) * radius;
+    if (i === 0) path.moveTo(x, y);
+    else path.lineTo(x, y);
+  }
 }
 
 /** Horizontal advance of a glyph at the given text size, in mm. */
