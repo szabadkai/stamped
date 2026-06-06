@@ -403,9 +403,18 @@ input[type="range"]::-moz-range-thumb {
   transition: background 0.15s, color 0.15s;
 }
 
-.btn-secondary:hover {
+.btn-secondary:hover:not(:disabled) {
   background: var(--surface-hover);
   color: var(--text);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-wide {
+  width: 100%;
 }
 
 #download-btn {

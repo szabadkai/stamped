@@ -15,6 +15,7 @@ let rebuildTimer: ReturnType<typeof setTimeout> | null = null;
 
 const status = document.getElementById('status')!;
 const downloadBtn = document.getElementById('download-btn') as HTMLButtonElement;
+const orderBtn = document.getElementById('order-btn') as HTMLButtonElement;
 const svgInput = document.getElementById('svg-input') as HTMLInputElement;
 const uploadZone = document.getElementById('upload-zone')!;
 const depthInput = document.getElementById('depth') as HTMLInputElement;
@@ -114,6 +115,7 @@ function rebuildSVGGeometry() {
     viewer.removeSVG();
     currentSVGGeometry = null;
     downloadBtn.disabled = true;
+    orderBtn.disabled = true;
     setStatus('Upload an SVG or add a circle / legend to begin');
     return;
   }
@@ -144,6 +146,7 @@ function rebuildSVGGeometry() {
     viewer.setSVGRotation(parseFloat(rotationInput.value));
 
     downloadBtn.disabled = false;
+    orderBtn.disabled = false;
     viewportHint.classList.add('visible');
     setTimeout(() => viewportHint.classList.remove('visible'), 5000);
     setStatus('Drag pattern to position • Adjust controls • Download when ready');
@@ -221,14 +224,31 @@ resetPosBtn.addEventListener('click', () => {
   viewer.resetSVGPosition();
 });
 
-downloadBtn.addEventListener('click', () => {
-  if (!currentSVGGeometry || !viewer.svgMesh) return;
-
+/** Build the full stamp (base + relief at its current position) as one geometry. */
+function buildCombinedGeometry(): THREE.BufferGeometry | null {
+  if (!currentSVGGeometry || !viewer.svgMesh) return null;
   viewer.svgMesh.updateMatrixWorld(true);
   const transform = viewer.svgMesh.matrixWorld.clone();
-  const combined = combineStamp(baseGeometry.clone(), currentSVGGeometry, transform);
+  return combineStamp(baseGeometry.clone(), currentSVGGeometry, transform);
+}
+
+downloadBtn.addEventListener('click', () => {
+  const combined = buildCombinedGeometry();
+  if (!combined) return;
   exportSTL(combined);
   setStatus('STL downloaded');
+});
+
+// Order a 3D print through Formlabs Form Now. Form Now has no public upload
+// API, so we export the STL locally and open its uploader for the user to drop
+// the file into (the standard upload → material → quote → checkout flow).
+const FORM_NOW_URL = 'https://now.formlabs.com/';
+orderBtn.addEventListener('click', () => {
+  const combined = buildCombinedGeometry();
+  if (!combined) return;
+  exportSTL(combined, 'stamp.stl');
+  window.open(FORM_NOW_URL, '_blank', 'noopener');
+  setStatus('STL saved — drop stamp.stl into the Form Now uploader to get a quote');
 });
 
 // ─── Theme ───
