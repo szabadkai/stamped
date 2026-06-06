@@ -8,6 +8,8 @@ export interface ExtrudeParams {
   bevelSize: number;
   flipWinding: boolean;
   targetSize: number;
+  /** Rotation (degrees) of the SVG art relative to the legend/circle frame. */
+  artRotation: number;
   /** Draw a solid ring border around the design. */
   circle: boolean;
   /** Ring wall thickness in mm. */
@@ -18,6 +20,10 @@ export interface ExtrudeParams {
   legendBottom: string;
   /** Cap height of the legend text in mm. */
   legendSize: number;
+  /** Spacing (mm) between the design and the legend/ring. */
+  gap: number;
+  /** Rotation (degrees) of the legend band around the circle. */
+  legendAngle: number;
 }
 
 export function extrudeSVG(
@@ -42,11 +48,12 @@ export function extrudeSVG(
     const svgCenterX = svgWidth / 2;
     const svgCenterY = svgHeight / 2;
     const scaleFactor = params.targetSize / maxDim;
+    const artRotation = (params.artRotation * Math.PI) / 180;
 
     for (const path of svgData.paths) {
       const shapes = SVGLoader.createShapes(path);
       for (const shape of shapes) {
-        transformShapePoints(shape, svgCenterX, svgCenterY, scaleFactor);
+        transformShapePoints(shape, svgCenterX, svgCenterY, scaleFactor, artRotation);
         allShapes.push(shape);
       }
     }
@@ -61,6 +68,8 @@ export function extrudeSVG(
       legendTop: params.legendTop,
       legendBottom: params.legendBottom,
       legendSize: params.legendSize,
+      gap: params.gap,
+      legendAngle: params.legendAngle,
       targetSize: params.targetSize,
     },
     contentRadius,
@@ -138,37 +147,35 @@ function transformShapePoints(
   centerX: number,
   centerY: number,
   scale: number,
+  rotation: number,
 ) {
+  const cos = Math.cos(rotation);
+  const sin = Math.sin(rotation);
+
   const transformCurve = (curves: THREE.Curve<THREE.Vector2>[]) => {
     for (const seg of curves) {
       if (seg instanceof THREE.LineCurve) {
-        applyTransform(seg.v1, centerX, centerY, scale);
-        applyTransform(seg.v2, centerX, centerY, scale);
+        applyTransform(seg.v1, centerX, centerY, scale, cos, sin);
+        applyTransform(seg.v2, centerX, centerY, scale, cos, sin);
       } else if (seg instanceof THREE.QuadraticBezierCurve) {
-        applyTransform(seg.v0, centerX, centerY, scale);
-        applyTransform(seg.v1, centerX, centerY, scale);
-        applyTransform(seg.v2, centerX, centerY, scale);
+        applyTransform(seg.v0, centerX, centerY, scale, cos, sin);
+        applyTransform(seg.v1, centerX, centerY, scale, cos, sin);
+        applyTransform(seg.v2, centerX, centerY, scale, cos, sin);
       } else if (seg instanceof THREE.CubicBezierCurve) {
-        applyTransform(seg.v0, centerX, centerY, scale);
-        applyTransform(seg.v1, centerX, centerY, scale);
-        applyTransform(seg.v2, centerX, centerY, scale);
-        applyTransform(seg.v3, centerX, centerY, scale);
+        applyTransform(seg.v0, centerX, centerY, scale, cos, sin);
+        applyTransform(seg.v1, centerX, centerY, scale, cos, sin);
+        applyTransform(seg.v2, centerX, centerY, scale, cos, sin);
+        applyTransform(seg.v3, centerX, centerY, scale, cos, sin);
       }
     }
   };
 
   transformCurve(shape.curves);
-  shape.currentPoint.set(
-    (shape.currentPoint.x - centerX) * scale,
-    -(shape.currentPoint.y - centerY) * scale,
-  );
+  applyTransform(shape.currentPoint, centerX, centerY, scale, cos, sin);
 
   for (const hole of shape.holes) {
     transformCurve(hole.curves);
-    hole.currentPoint.set(
-      (hole.currentPoint.x - centerX) * scale,
-      -(hole.currentPoint.y - centerY) * scale,
-    );
+    applyTransform(hole.currentPoint, centerX, centerY, scale, cos, sin);
   }
 }
 
@@ -177,9 +184,11 @@ function applyTransform(
   centerX: number,
   centerY: number,
   scale: number,
+  cos: number,
+  sin: number,
 ) {
-  point.set(
-    (point.x - centerX) * scale,
-    -(point.y - centerY) * scale,
-  );
+  // Centre and scale (SVG y-axis points down, so flip), then rotate.
+  const x = (point.x - centerX) * scale;
+  const y = -(point.y - centerY) * scale;
+  point.set(x * cos - y * sin, x * sin + y * cos);
 }

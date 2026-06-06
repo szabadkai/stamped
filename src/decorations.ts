@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import type { Font } from 'three/addons/loaders/FontLoader.js';
-import { getFont } from './font.ts';
+import { getActiveFont } from './font.ts';
 
 export interface DecorationParams {
   /** Draw a solid ring border around the design. */
@@ -13,6 +13,10 @@ export interface DecorationParams {
   legendBottom: string;
   /** Cap height of the legend text in mm. */
   legendSize: number;
+  /** Spacing (mm) between the design and the legend/ring (and between them). */
+  gap: number;
+  /** Rotation (degrees) of the legend band around the circle. */
+  legendAngle: number;
   /** Overall reference size of the stamp in mm (base width × scale). */
   targetSize: number;
 }
@@ -36,19 +40,19 @@ export function buildDecorationShapes(
   if (!p.circle && !hasLegend) return [];
 
   const out: THREE.Shape[] = [];
-  const gap = Math.max(2, p.targetSize * 0.06);
+  const gap = Math.max(0, p.gap);
 
   // Work outward from the design: optional legend band, then optional ring.
   let radius = contentRadius + gap;
 
   if (hasLegend) {
-    const font = getFont();
+    const font = getActiveFont();
     const baselineRadius = radius + p.legendSize / 2;
     if (top) {
-      layoutTextOnArc(out, font, top, p.legendSize, baselineRadius, 90, -1, true);
+      layoutTextOnArc(out, font, top, p.legendSize, baselineRadius, 90 + p.legendAngle, -1, true);
     }
     if (bottom) {
-      layoutTextOnArc(out, font, bottom, p.legendSize, baselineRadius, 270, 1, false);
+      layoutTextOnArc(out, font, bottom, p.legendSize, baselineRadius, 270 + p.legendAngle, 1, false);
     }
     radius = baselineRadius + p.legendSize / 2 + gap;
   }

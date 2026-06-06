@@ -4,6 +4,7 @@ import { extrudeSVG, type ExtrudeParams } from './svg-extruder.ts';
 import { combineStamp } from './stamp-combiner.ts';
 import { exportSTL } from './exporter.ts';
 import { StampViewer } from './viewer.ts';
+import { FONT_OPTIONS, setActiveFont } from './font.ts';
 
 let viewer: StampViewer;
 let baseGeometry: THREE.BufferGeometry;
@@ -20,20 +21,35 @@ const depthInput = document.getElementById('depth') as HTMLInputElement;
 const bevelInput = document.getElementById('bevel') as HTMLInputElement;
 const scaleInput = document.getElementById('scale') as HTMLInputElement;
 const rotationInput = document.getElementById('rotation') as HTMLInputElement;
+const artRotationInput = document.getElementById('art-rotation') as HTMLInputElement;
 const flipInput = document.getElementById('flip-winding') as HTMLInputElement;
 const circleInput = document.getElementById('circle-enabled') as HTMLInputElement;
 const circleThicknessInput = document.getElementById('circle-thickness') as HTMLInputElement;
+const gapInput = document.getElementById('gap') as HTMLInputElement;
 const legendTopInput = document.getElementById('legend-top') as HTMLInputElement;
 const legendBottomInput = document.getElementById('legend-bottom') as HTMLInputElement;
+const legendFontSelect = document.getElementById('legend-font') as HTMLSelectElement;
 const legendSizeInput = document.getElementById('legend-size') as HTMLInputElement;
+const legendAngleInput = document.getElementById('legend-angle') as HTMLInputElement;
 const resetPosBtn = document.getElementById('reset-pos-btn') as HTMLButtonElement;
 const viewportHint = document.getElementById('viewport-hint')!;
 const depthValue = document.getElementById('depth-value')!;
 const bevelValue = document.getElementById('bevel-value')!;
 const scaleValue = document.getElementById('scale-value')!;
 const rotationValue = document.getElementById('rotation-value')!;
+const artRotationValue = document.getElementById('art-rotation-value')!;
 const circleThicknessValue = document.getElementById('circle-thickness-value')!;
+const gapValue = document.getElementById('gap-value')!;
 const legendSizeValue = document.getElementById('legend-size-value')!;
+const legendAngleValue = document.getElementById('legend-angle-value')!;
+
+// Populate the font picker from the registry.
+for (const opt of FONT_OPTIONS) {
+  const el = document.createElement('option');
+  el.value = opt.id;
+  el.textContent = opt.label;
+  legendFontSelect.appendChild(el);
+}
 const themeToggle = document.getElementById('theme-toggle') as HTMLButtonElement;
 
 function setStatus(text: string) {
@@ -52,11 +68,14 @@ function readExtrudeParams(): ExtrudeParams {
     bevelSize: parseFloat(bevelInput.value),
     flipWinding: flipInput.checked,
     targetSize: getTargetSize(),
+    artRotation: parseFloat(artRotationInput.value),
     circle: circleInput.checked,
     circleThickness: parseFloat(circleThicknessInput.value),
     legendTop: legendTopInput.value,
     legendBottom: legendBottomInput.value,
     legendSize: parseFloat(legendSizeInput.value),
+    gap: parseFloat(gapInput.value),
+    legendAngle: parseFloat(legendAngleInput.value),
   };
 }
 
@@ -65,8 +84,11 @@ function updateValueLabels() {
   bevelValue.textContent = `${bevelInput.value} mm`;
   scaleValue.textContent = `${scaleInput.value}%`;
   rotationValue.textContent = `${rotationInput.value}°`;
+  artRotationValue.textContent = `${artRotationInput.value}°`;
   circleThicknessValue.textContent = `${circleThicknessInput.value} mm`;
+  gapValue.textContent = `${gapInput.value} mm`;
   legendSizeValue.textContent = `${legendSizeInput.value} mm`;
+  legendAngleValue.textContent = `${legendAngleInput.value}°`;
 }
 
 /** True when there's anything to build: an SVG, a circle, or legend text. */
@@ -173,12 +195,19 @@ rotationInput.addEventListener('input', () => {
   updateValueLabels();
   viewer.setSVGRotation(parseFloat(rotationInput.value));
 });
+artRotationInput.addEventListener('input', () => { updateValueLabels(); debouncedRebuild(); });
 flipInput.addEventListener('change', rebuildSVGGeometry);
 circleInput.addEventListener('change', rebuildSVGGeometry);
 circleThicknessInput.addEventListener('input', () => { updateValueLabels(); debouncedRebuild(); });
+gapInput.addEventListener('input', () => { updateValueLabels(); debouncedRebuild(); });
 legendTopInput.addEventListener('input', debouncedRebuild);
 legendBottomInput.addEventListener('input', debouncedRebuild);
 legendSizeInput.addEventListener('input', () => { updateValueLabels(); debouncedRebuild(); });
+legendAngleInput.addEventListener('input', () => { updateValueLabels(); debouncedRebuild(); });
+legendFontSelect.addEventListener('change', () => {
+  setStatus('Loading font...');
+  setActiveFont(legendFontSelect.value).then(rebuildSVGGeometry);
+});
 
 resetPosBtn.addEventListener('click', () => {
   viewer.resetSVGPosition();
