@@ -577,6 +577,16 @@ input[type="range"]::-moz-range-thumb {
   line-height: 1.45;
 }
 
+.modal-rec {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--upload-bg);
+  border: 1px solid var(--upload-border);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+}
+
 .modal-actions {
   display: flex;
   justify-content: flex-end;
